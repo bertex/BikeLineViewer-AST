@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Set HTML and body height to 100% to fill the viewport */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Set map container height to 100% of viewport height */
+        #map {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script> 
+        var map = L.map('map').setView([41.38700675395211, 2.1700415584817514], 12); // Centered at [latitude, longitude], with zoom level 2
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Fetch GeoJSON data and add it to the map
+        fetch('/api/data/bikelanes')
+            .then(response => response.json())
+            .then(data => {
+                var geojsonLayer = L.geoJSON(data).addTo(map);
+                // Function to display information in a popup when a feature is clicked
+                function onFeatureClick(event) {
+                    var properties = event.layer.feature.properties;
+                    var popupContent = properties['TOOLTIP'];
+                    event.layer.bindPopup(popupContent).openPopup();
+                }
+
+                // Register click event listener on the GeoJSON layer
+                geojsonLayer.on('click', onFeatureClick);
+            })
+            .catch(error => {
+                console.error('Error fetching GeoJSON data:', error);
+            });
+    </script>
+</body>
+</html>
